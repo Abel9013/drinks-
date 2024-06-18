@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react"
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { useAppStore } from "../stores/useStoreApp"
 
@@ -10,18 +10,29 @@ export default function Header() {
     const {pathname} = useLocation()
     const isHome = useMemo(()=>pathname==="/",[pathname])
     const fetchCategories = useAppStore((state)=>state.fetchCategories)
+    const searchRecipes = useAppStore((state)=>state.searchRecipes)
     const categories = useAppStore((state)=>state.categories)
     const {drinks} = categories
+    
     
     useEffect(()=>{
         fetchCategories()
     },[])    
+
     const handleChange = (e:ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>)=>{
-        e.preventDefault()
         setSearchFilter({
             ...searchFilter,
             [e.target.name]:e.target.value
         })
+    }
+    const handleSubmit = (e:FormEvent<HTMLFormElement>)=>{
+        e.preventDefault()
+        if(Object.values(searchFilter).includes("")){
+            console.log("All fields are mandatory");
+            return
+        }
+        // Validar Recetas
+        searchRecipes(searchFilter)
     }
   return (
     <header className={isHome ? "bg-header bg-center bg-cover" : "bg-slate-800"}>
@@ -49,7 +60,10 @@ export default function Header() {
                 </nav>
             </div>
             {isHome && (
-                <form className="md:w-1/2 2xl:w-1/3 bg-orange-400 my-32 p-10 rounded-g shadow space-y-6">
+                <form 
+                    className="md:w-1/2 2xl:w-1/3 bg-orange-400 my-32 p-10 rounded-g shadow space-y-6"
+                    onSubmit={handleSubmit}
+                >
                     {/* space-y-6 le agrega a cada uno de los hijos del formulario el espacio en y */}
                     <div className="space-y-4">
                         <label htmlFor="ingredient"
